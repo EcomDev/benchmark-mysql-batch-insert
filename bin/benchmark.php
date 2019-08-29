@@ -12,6 +12,7 @@ use EcomDev\BenchmarkMySQLBatchInsert\BenchmarkApplication;
 use EcomDev\BenchmarkMySQLBatchInsert\MultiValueInsertMethod;
 use EcomDev\BenchmarkMySQLBatchInsert\PreparedSingleValueInsertMethod;
 use EcomDev\BenchmarkMySQLBatchInsert\PreparedStatementMultiValueInsert;
+use EcomDev\BenchmarkMySQLBatchInsert\PreparedStatementMultiValueSeparateInsert;
 use League\CLImate\CLImate;
 
 $console = new CLImate();
@@ -67,7 +68,8 @@ try {
             $batchSize,
             $dataSetSize,
             new MultiValueInsertMethod(),
-            new PreparedStatementMultiValueInsert()
+            new PreparedStatementMultiValueInsert(),
+            new PreparedStatementMultiValueSeparateInsert()
         )
     );
 } catch (Exception $exception) {

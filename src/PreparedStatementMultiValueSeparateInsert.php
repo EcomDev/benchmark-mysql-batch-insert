@@ -8,35 +8,40 @@ declare(strict_types=1);
 
 namespace EcomDev\BenchmarkMySQLBatchInsert;
 
+
 use Zend\Db\Adapter\Adapter;
 
-class PreparedSingleValueInsertMethod implements InsertMethod
+class PreparedStatementMultiValueSeparateInsert implements InsertMethod
 {
     public function import(Adapter $adapter, string $tableName, array $columns, int $batchSize, iterable $rows): void
     {
         $baseSql = sprintf(
-            'INSERT IGNORE INTO %s (%s) VALUES (%s) -- ON DUPLICATE KEY UPDATE %s',
+            'INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s',
             $adapter->platform->quoteIdentifier($tableName),
             implode(',', array_map([$adapter->platform,'quoteIdentifier'], $columns)),
-            rtrim(str_repeat('?,', count($columns)), ','),
+            implode(',', array_fill(0, $batchSize, sprintf('(%s)', rtrim(str_repeat('?,', count($columns)), ',')))),
             implode(',', array_map(function ($column) use ($adapter) {
                 return sprintf('%1$s = VALUES(%1$s)', $adapter->platform->quoteIdentifier($column));
             }, $columns))
         );
 
-        $statement = $adapter->createStatement($baseSql);
-        $statement->prepare();
+        $columnCount = count($columns);
 
         $adapter->driver->getConnection()->beginTransaction();
-        $rowCount = 0;
+        $parameters = [];
+        $batchId = 1;
         foreach ($rows as $row) {
-            $statement->execute($row);
-            $rowCount ++;
+            $parameters[] = $adapter->platform->quoteValueList($row);
 
-            if ($rowCount === $batchSize) {
-                $adapter->driver->getConnection()->commit();
-                $adapter->driver->getConnection()->beginTransaction();
+            if ((count($parameters) / $columnCount) === $batchSize) {
+                $adapter->query('BEGIN');
+                $adapter->createStatement(sprintf($baseSql . ' -- batch %s', $batchId))->execute($parameters);
+                $adapter->query('END');
             }
+
+            $batchId++;
+
+            $parameters = [];
         }
 
         $adapter->driver->getConnection()->commit();
