@@ -1,0 +1,24 @@
+{
+    "name": "ecomdev/benchmark-mysql-batch-insert",
+    "description": "Benchmark batch insert",
+    "type": "project",
+    "require": {
+        "zendframework/zend-db": "^2.10",
+        "league/climate": "^3.5",
+        "ext-pdo": "*",
+        "php": "^7.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ivan Chepurnyi",
+            "email": "ivan.chepurnyi@ecomdev.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EcomDev\\BenchmarkMySQLBatchInsert\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
